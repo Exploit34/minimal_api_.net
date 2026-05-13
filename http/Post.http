@@ -1,0 +1,10 @@
+### add
+POST http://localhost:5205/products/Add
+Content-Type: application/json
+
+{
+    "ProductId": 0,
+    "ProductName": "add line stocker",
+    "Price": 24.80,
+    "StockQuantity": 200
+}

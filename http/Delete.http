@@ -1,0 +1,2 @@
+### delete product
+DELETE http://localhost:5205/products/1
