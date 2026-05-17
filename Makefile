@@ -18,3 +18,6 @@ userId:
 
 package:
 	@dotnet list package --project ProductCatalog.Api
+
+test:
+	@dotnet test ProductCatalog.Api.Tests
