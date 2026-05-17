@@ -1,9 +1,8 @@
 ### add
-POST http://localhost:5205/products/Add
+POST http://localhost:5205/products/
 Content-Type: application/json
 
 {
-    "ProductId": 0,
     "ProductName": "add line stocker",
     "Price": 24.80,
     "StockQuantity": 200
