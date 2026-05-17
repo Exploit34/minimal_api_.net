@@ -1,48 +1,77 @@
 using ProductCatalog.Api.Models;
 using ProductCatalog.Api.Contracts;
 using ProductCatalog.Api.Interface;
+using ProductCatalog.Api.Data;
+using Microsoft.EntityFrameworkCore;
 
 namespace ProductCatalog.Api.Services;
 
 public class ProductService : IProductService
 {
-    private readonly List<Product> _products = new()
+
+    private readonly ApplicationDbContext _context;
+
+    public ProductService(ApplicationDbContext context)
     {
-        new Product(1, "Phone samsung", 2300.45m, 10),
-        new Product(2, "Phone apple", 3000.90m, 10),
-        new Product(3, "Laptop dell 15", 5045.15m, 10),
-        new Product(4, "Reloj smart watch", 300.55m, 10)
-    };
+        _context = context;
+    }
+    
+    // private readonly List<Product> _products = new()
+    // {
+    //     new Product(1, "Phone samsung", 2300.45m, 10),
+    //     new Product(2, "Phone apple", 3000.90m, 10),
+    //     new Product(3, "Laptop dell 15", 5045.15m, 10),
+    //     new Product(4, "Reloj smart watch", 300.55m, 10)
+    // };
 
-    private int _nextId = 4;
+    // private int _nextId = 4;
 
-    public IEnumerable<Product> GetAll() => _products;
+    public IEnumerable<Productdb> GetAll() => _context.Products.AsNoTracking().ToList();
 
-    public Product? GetById(int ProductId) =>
-        _products.FirstOrDefault(p => p.ProductId == ProductId);
+    public Productdb? GetById(int productId) =>
+        _context.Products.AsNoTracking()
+            .FirstOrDefault(p => p.ProductId == productId);
 
-    public Product Create(CreateProductRequest request)
+    public Productdb Create(CreateProductRequest request)
     {
-        var product = new Product(_nextId++, request.ProductName, request.Price, request.StockQuantity);
-        _products.Add(product);
+        var exists = _context.Products.AsNoTracking()
+            .Any(p => p.ProductName.ToLower() == request.ProductName.ToLower());
+
+        if (exists) return null;
+
+        var product = new Productdb
+        {
+            ProductName    = request.ProductName,
+            Price          = request.Price,
+            StockQuantity  = request.StockQuantity
+        };
+
+        _context.Products.Add(product);
+        _context.SaveChanges();
+
         return product;
     }
 
-    public bool Update(int ProductId, UpdateProductRequest request)
+    public bool Update(int productId, UpdateProductRequest request)
     {
-        var index = _products.FindIndex(p => p.ProductId == ProductId);
-        if (index == -1) return false;
+        var product = _context.Products.FirstOrDefault(p => p.ProductId == productId);
+        if (product == null) return false;
 
-        _products[index] = new Product(ProductId, request.ProductName, request.Price, request.StockQuantity);
+        product.ProductName   = request.ProductName;
+        product.Price         = request.Price;
+        product.StockQuantity = request.StockQuantity;
+
+        _context.SaveChanges();
         return true;
     }
 
-    public bool Delete(int ProductId)
+    public bool Delete(int productId)
     {
-        var index = _products.FindIndex(p => p.ProductId == ProductId);
-        if (index == -1) return false;
+        var product = _context.Products.FirstOrDefault(p => p.ProductId == productId);
+        if (product == null) return false;
 
-        _products.RemoveAt(index);
+        _context.Products.Remove(product);
+        _context.SaveChanges();
         return true;
     }
 }

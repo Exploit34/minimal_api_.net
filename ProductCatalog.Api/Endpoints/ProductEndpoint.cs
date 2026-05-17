@@ -13,31 +13,35 @@ public static class ProductEndpoint
         var group = app.MapGroup("/products")
             .WithTags("Products");
 
-        group.MapGet("/GetAll", (IProductService service) => 
+        group.MapGet("/", (IProductService service) =>
             TypedResults.Ok(service.GetAll()))
             .WithName("GetAllProducts");
 
-        group.MapGet("/{id:int}", Results<Ok<Product>, NotFound> (int id, IProductService service) =>
-            service.GetById(id) is { } product is true
+        group.MapGet("/{id:int}", Results<Ok<Productdb>, NotFound> (int id, IProductService service) =>
+            service.GetById(id) is { } product
                 ? TypedResults.Ok(product)
                 : TypedResults.NotFound())
             .WithName("GetProductById");
-        
-        group.MapPost("/Add", (CreateProductRequest request, IProductService service) =>
+
+        group.MapPost("/", Results<Created<Productdb>, Conflict<string>> (CreateProductRequest request, IProductService service) =>
         {
             var product = service.Create(request);
+            
+            if (product is null)
+                return TypedResults.Conflict("Warning: Ya existe un producto con ese nombre.");
+
             return TypedResults.Created($"/products/{product.ProductId}", product);
         })
         .WithName("CreateProduct");
 
         group.MapPut("/{id:int}", Results<NoContent, NotFound> (int id, UpdateProductRequest request, IProductService service) =>
-            service.Update(id, request) is true
+            service.Update(id, request)
                 ? TypedResults.NoContent()
                 : TypedResults.NotFound())
             .WithName("UpdateProduct");
 
         group.MapDelete("/{id:int}", Results<NoContent, NotFound> (int id, IProductService service) =>
-            service.Delete(id) is true
+            service.Delete(id)
                 ? TypedResults.NoContent()
                 : TypedResults.NotFound())
             .WithName("DeleteProduct");
